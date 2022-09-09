@@ -231,6 +231,7 @@ TEST(router_test, test_route_head_request)
     Routes::Head(router, "/moogle",
                  [&count_found](const Pistache::Rest::Request&,
                                 Pistache::Http::ResponseWriter response) {
+std::cerr <<" Got req\n";
                      count_found++;
                      response.send(Pistache::Http::Code::Ok);
                      return Pistache::Rest::Route::Result::Ok;

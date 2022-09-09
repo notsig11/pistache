@@ -142,6 +142,7 @@ namespace Pistache::Http
 
         State RequestLineStep::apply(StreamCursor& cursor)
         {
+	    std::cerr << "Parse request line...\n";
             StreamCursor::Revert revert(cursor);
 
             auto* request = static_cast<Request*>(message);
@@ -154,6 +155,7 @@ namespace Pistache::Http
             if (it != httpMethods.end())
             {
                 request->method_ = it->second;
+		std::cerr << "Method found: " << it->second << " \n";
             }
             else
             {
@@ -828,6 +830,7 @@ namespace Pistache::Http
                                                      const size_t size,
                                                      const Mime::MediaType& mime)
     {
+	    std::cout << "Response::sendImpl\n";
         if (!peer_.expired())
         {
             auto curPeer = peer_.lock();
@@ -1038,7 +1041,8 @@ namespace Pistache::Http
         auto sockFd     = peer->fd();
 
         auto buffer = buf->buffer();
-        return transport->asyncWrite(sockFd, buffer, MSG_MORE)
+	throw std::runtime_error("serveFile is broken on FreeBSD until I can sort out how to handle MSG_MORE");
+        return transport->asyncWrite(sockFd, buffer, 0 /*MSG_MORE*/)
             .then(
                 [=](ssize_t) {
                     return transport->asyncWrite(sockFd, FileBuffer(fileName));
@@ -1134,6 +1138,7 @@ namespace Pistache::Http
 
     void Handler::onConnection(const std::shared_ptr<Tcp::Peer>& peer)
     {
+	    std::cerr << "Handler::onConnection...\n";
         peer->putData(ParserData, std::make_shared<RequestParser>(maxRequestSize_));
     }
 

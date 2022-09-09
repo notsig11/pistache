@@ -48,10 +48,12 @@ endif()
 
 target_include_directories(pistache PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../subprojects/hinnant-date/include)
 target_include_directories(pistache PUBLIC ${PISTACHE_INCLUDE})
+include_directories("/usr/local/include/libepoll-shim")
+link_directories("/usr/local/lib")
 
 if (BUILD_SHARED_LIBS)
     add_library(pistache_shared SHARED $<TARGET_OBJECTS:pistache>)
-    target_link_libraries(pistache_shared PRIVATE Threads::Threads ${CMAKE_REQUIRED_LIBRARIES})
+    target_link_libraries(pistache_shared PRIVATE Threads::Threads ${CMAKE_REQUIRED_LIBRARIES} epoll-shim)
     target_include_directories(pistache_shared INTERFACE ${PISTACHE_INCLUDE})
 endif ()
 

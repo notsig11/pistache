@@ -521,6 +521,7 @@ namespace Pistache::Rest
 
         for (const auto& handler : customHandlers)
         {
+		std::cerr << "calling handler...\n";
             auto resp     = response.clone();
             auto handler1 = handler(
                 Request(req, std::vector<TypedParam>(), std::vector<TypedParam>()),

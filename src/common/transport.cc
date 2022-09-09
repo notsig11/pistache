@@ -11,7 +11,9 @@
 
 */
 
+#ifndef __FreeBSD__
 #include <sys/sendfile.h>
+#endif
 #include <sys/timerfd.h>
 
 #include <pistache/os.h>
@@ -59,11 +61,14 @@ namespace Pistache::Tcp
         const bool isInRightThread = std::this_thread::get_id() == ctx.thread();
         if (!isInRightThread)
         {
+	    std::cerr << "Transport::handleNewPeer...queued\n";
             PeerEntry entry(peer);
             peersQueue.push(std::move(entry));
         }
         else
         {
+
+	    std::cerr << "Transport::handleNewPeer...LIVE\n";
             handlePeer(peer);
         }
         int fd = peer->fd();
@@ -383,7 +388,9 @@ namespace Pistache::Tcp
         else
         {
 #endif /* PISTACHE_USE_SSL */
+#ifndef __FreeBSD__ // TODO: Translate for FreeBSD sendfile() if possible...
             bytesWritten = ::sendfile(fd, file, &offset, len);
+#endif
 #ifdef PISTACHE_USE_SSL
         }
 #endif /* PISTACHE_USE_SSL */
@@ -490,8 +497,11 @@ namespace Pistache::Tcp
         for (;;)
         {
             auto data = peersQueue.popSafe();
-            if (!data)
+		std::cerr << "peerQueueLoop\n";
+            if (!data) {
+		    std::cerr << "Broke peerQueueLooop\n";
                 break;
+	    }
 
             handlePeer(data->peer);
         }
@@ -499,6 +509,7 @@ namespace Pistache::Tcp
 
     void Transport::handlePeer(const std::shared_ptr<Peer>& peer)
     {
+	    std::cerr << "Transport::handlePeer\n";
         int fd = peer->fd();
         peers.insert(std::make_pair(fd, peer));
 

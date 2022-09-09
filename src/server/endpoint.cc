@@ -88,7 +88,15 @@ namespace Pistache::Http
             if (entry.getTag() == Polling::Tag(timerFd))
             {
                 uint64_t wakeups;
+#ifdef __FreeBSD__
+#pragma push_macro("read")	
+#undef read
+#ifdef read
+#pragma message("read is fucking def'd")
+#endif
                 ::read(timerFd, &wakeups, sizeof wakeups);
+#pragma pop_macro("read")
+#endif
                 checkIdlePeers();
                 break;
             }

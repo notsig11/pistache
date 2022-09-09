@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 
+#include <sys/epoll.h>
 #include <sched.h>
 
 namespace Pistache

@@ -150,6 +150,9 @@ namespace Pistache::Aio
             for (;;)
             {
                 std::vector<Polling::Event> events;
+#ifdef poll
+#pragma message("mother fuck you.")
+#endif		
                 int ready_fds = poller.poll(events);
 
                 switch (ready_fds)

@@ -27,6 +27,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#ifdef __FreeBSD__
+#define s6_addr16 __u6_addr.__u6_addr16
+#endif
+
 namespace Pistache
 {
 

@@ -452,9 +452,9 @@ TEST(headers_test, date_test_ostream)
     std::ostringstream os;
 
     Pistache::Http::Header::Date d4;
-    d4.parse("Fri, 25 Jan 2019 21:04:45.000000000 UTC");
+    d4.parse("Fri, 25 Jan 2019 21:04:45.000000 UTC");
     d4.write(os);
-    ASSERT_TRUE("Fri, 25 Jan 2019 21:04:45.000000000 UTC" == os.str());
+    ASSERT_TRUE("Fri, 25 Jan 2019 21:04:45.000000 UTC" == os.str());
 }
 
 TEST(headers_test, host)

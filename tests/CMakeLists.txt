@@ -14,11 +14,12 @@ function(pistache_test test_name)
         ${CMAKE_SOURCE_DIR}/subprojects/hinnant-date/include
         ${CMAKE_SOURCE_DIR}/subprojects/cpp-httplib
     )
+    set_property(TARGET ${TEST_EXECUTABLE} PROPERTY CXX_STANDARD 17)
     # CMake 3.20 and upstream GTest define GTest::gtest, older versions define GTest::GTest
     if (TARGET GTest::gtest)
-        target_link_libraries(${TEST_EXECUTABLE} GTest::gtest GTest::gtest_main pistache_static ${CURL_LIBRARIES})
+        target_link_libraries(${TEST_EXECUTABLE} GTest::gtest GTest::gtest_main pistache_static epoll-shim ${CURL_LIBRARIES})
     else ()
-        target_link_libraries(${TEST_EXECUTABLE} GTest::GTest GTest::Main pistache_static ${CURL_LIBRARIES})
+        target_link_libraries(${TEST_EXECUTABLE} GTest::GTest GTest::Main pistache_static epoll-shim ${CURL_LIBRARIES})
     endif ()
     add_test(${test_name} ${TEST_EXECUTABLE})
 endfunction()

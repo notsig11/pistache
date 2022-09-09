@@ -53,6 +53,9 @@ configure_file (
 
 add_subdirectory (src)
 
+include_directories("/usr/local/include/libepoll-shim")
+link_directories("/usr/local/lib")
+
 if (PISTACHE_BUILD_TESTS)
     include(CTest)
     find_package(GTest QUIET)

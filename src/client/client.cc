@@ -17,7 +17,6 @@
 #include <pistache/stream.h>
 
 #include <netdb.h>
-#include <sys/sendfile.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 

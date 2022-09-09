@@ -1697,7 +1697,12 @@ inline void read_file(const std::string &path, std::string &out) {
   auto size = fs.tellg();
   fs.seekg(0);
   out.resize(static_cast<size_t>(size));
+#ifdef __FreeBSD__
+#pragma push_macro("read")
+#undef read
   fs.read(&out[0], static_cast<std::streamsize>(size));
+#pragma pop_macro("read")
+#endif
 }
 
 inline std::string file_extension(const std::string &path) {
@@ -1887,6 +1892,8 @@ inline ssize_t select_write(socket_t sock, time_t sec, time_t usec) {
   timeval tv;
   tv.tv_sec = static_cast<long>(sec);
   tv.tv_usec = static_cast<decltype(tv.tv_usec)>(usec);
+
+  std::cerr << "Write req...\n";
 
   return handle_EINTR([&]() {
     return select(static_cast<int>(sock + 1), nullptr, &fds, nullptr, &tv);

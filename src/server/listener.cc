@@ -21,9 +21,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <sys/epoll.h>
 #include <sys/socket.h>
-#include <sys/timerfd.h>
 #include <sys/types.h>
 
 #include <chrono>
@@ -168,15 +166,20 @@ namespace Pistache::Tcp
             TRY(::setsockopt(fd, SOL_SOCKET, SO_LINGER, &opt, sizeof(opt)));
         }
 
+	const auto tcp = getprotobyname("TCP");
+	if (tcp == nullptr) {
+		std::cerr << "Fuck me.  WTF, No TCP?\n";
+	}
+
         if (options.hasFlag(Options::FastOpen))
         {
             int hint = 5;
-            TRY(::setsockopt(fd, SOL_TCP, TCP_FASTOPEN, &hint, sizeof(hint)));
+            TRY(::setsockopt(fd, tcp->p_proto, TCP_FASTOPEN, &hint, sizeof(hint)));
         }
         if (options.hasFlag(Options::NoDelay))
         {
             int one = 1;
-            TRY(::setsockopt(fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)));
+            TRY(::setsockopt(fd, tcp->p_proto, TCP_NODELAY, &one, sizeof(one)));
         }
     }
 
@@ -198,7 +201,14 @@ namespace Pistache::Tcp
 
         if (listen_fd >= 0)
         {
-            close(listen_fd);
+#ifdef __FreeBSD__
+#pragma push_macro("close")
+#undef close		    
+                close(listen_fd);
+#pragma pop_macro("close")
+#else
+                close(listen_fd);
+#endif
             listen_fd = -1;
         }
     }
@@ -346,7 +356,17 @@ namespace Pistache::Tcp
         for (;;)
         {
             std::vector<Polling::Event> events;
+#ifdef __FreeBSD__
+#ifdef poll
+#pragma message("still fucking here...")
+#endif
+#pragma push_macro("poll")
+#undef poll
             int ready_fds = poller.poll(events);
+#pragma pop_macro("poll")
+#else 
+            int ready_fds = poller.poll(events);
+#endif
 
             if (ready_fds == -1)
             {
@@ -462,6 +482,7 @@ namespace Pistache::Tcp
 
         void* ssl = nullptr;
 
+	std::cerr << "Listener new conn\n";
 #ifdef PISTACHE_USE_SSL
         if (this->useSSL_)
         {
@@ -469,7 +490,14 @@ namespace Pistache::Tcp
             SSL* ssl_data = SSL_new(GetSSLContext(ssl_ctx_));
             if (ssl_data == nullptr)
             {
+#ifdef __FreeBSD__
+#pragma push_macro("close")
+#undef close		    
                 close(client_fd);
+#pragma pop_macro("close")
+#else
+                close(client_fd);
+#endif		
                 std::string err = "SSL error - cannot create SSL connection: "
                     + ssl_print_errors_to_string();
                 throw ServerError(err.c_str());
@@ -483,8 +511,15 @@ namespace Pistache::Tcp
                 std::string err = "SSL connection error: "
                     + ssl_print_errors_to_string();
                 PISTACHE_LOG_STRING_INFO(logger_, err);
-                SSL_free(ssl_data);
+               	SSL_free(ssl_data);
+ #ifdef __FreeBSD__
+#pragma push_macro("close")
+#undef close		    
                 close(client_fd);
+#pragma pop_macro("close")
+#else
+                close(client_fd);
+#endif		
                 return;
             }
             ssl = static_cast<void*>(ssl_data);
@@ -529,6 +564,8 @@ namespace Pistache::Tcp
         auto idx       = peer->fd() % handlers.size();
         auto transport = std::static_pointer_cast<Transport>(handlers[idx]);
 
+	    std::cerr << "Dispatcing peer...\n";
+	    std::cerr << "Dispatcing peer... " << handlers.size() << "\n";
         transport->handleNewPeer(peer);
     }
 
